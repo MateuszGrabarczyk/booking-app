@@ -1,0 +1,92 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Environment files
+# ──────────────────────────────────────────────────────────────────────────────
+# ignore all .env* except examples if you have them
+.env*
+!.env.example
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Django / Python (backend/)
+# ──────────────────────────────────────────────────────────────────────────────
+# Byte‑compiled / optimized / DLL files
+/backend/__pycache__/
+/backend/*.py[cod]
+/backend/*$py.class
+
+# C extensions
+/backend/*.so
+
+# Distribution / packaging
+/backend/*.egg-info/
+/backend/dist/
+/backend/build/
+
+# Django-specific
+/backend/*.log
+/backend/local_settings.py
+/backend/db.sqlite3
+/backend/db.sqlite3-journal
+/backend/media/
+
+# Virtualenvs
+/backend/venv/
+/backend/.venv/
+/backend/env/
+
+# Coverage / test reports
+/backend/.pytest_cache/
+/backend/.coverage
+/backend/htmlcov/
+/backend/cover/
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Next.js / Node (frontend/)
+# ──────────────────────────────────────────────────────────────────────────────
+# dependencies
+/frontend/node_modules/
+/frontend/.pnp
+/frontend/.pnp.*
+/frontend/.yarn/*
+!/frontend/.yarn/patches
+!/frontend/.yarn/plugins
+!/frontend/.yarn/releases
+!/frontend/.yarn/versions
+
+# Next.js build output
+/frontend/.next/
+/frontend/out/
+/frontend/build
+
+# test coverage
+/frontend/coverage
+
+# debug logs
+/frontend/npm-debug.log*
+/frontend/yarn-debug.log*
+/frontend/yarn-error.log*
+/frontend/pnpm-debug.log*
+
+# lockfiles (uncomment if you don't want them committed)
+/frontend/package-lock.json
+/frontend/yarn.lock
+/frontend/pnpm-lock.yaml
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Docker / Compose
+# ──────────────────────────────────────────────────────────────────────────────
+# (if you want to ignore the local Docker env file)
+/.env.docker-compose
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Misc / OS / Editors
+# ──────────────────────────────────────────────────────────────────────────────
+# macOS / Windows
+.DS_Store
+Thumbs.db
+
+# VSCode / IDEs
+.vscode/
+.idea/
+
+# logs
+*.log
