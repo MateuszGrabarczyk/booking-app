@@ -1,21 +1,42 @@
 "use client";
-
 import { useState } from "react";
-import { TextField, Button, Box } from "@mui/material";
+import { useRouter } from "next/navigation";
+import { TextField, Button, Box, Alert, CircularProgress } from "@mui/material";
+import { registerApi } from "../lib/auth";
 
 export default function RegisterForm() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: call your register API
-    console.log("register with", { email, password });
+    setError(null);
+    if (password !== confirm) {
+      setError("Passwords don't match");
+      return;
+    }
+    setLoading(true);
+    try {
+      await registerApi(email, password, confirm);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <Box component="form" onSubmit={handleSubmit} noValidate>
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+
       <TextField
         label="Email"
         type="email"
@@ -24,6 +45,7 @@ export default function RegisterForm() {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         required
+        InputProps={{ sx: { borderRadius: 2 } }}
       />
       <TextField
         label="Password"
@@ -33,6 +55,7 @@ export default function RegisterForm() {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         required
+        InputProps={{ sx: { borderRadius: 2 } }}
       />
       <TextField
         label="Confirm Password"
@@ -42,9 +65,23 @@ export default function RegisterForm() {
         value={confirm}
         onChange={(e) => setConfirm(e.target.value)}
         required
+        InputProps={{ sx: { borderRadius: 2 } }}
       />
-      <Button type="submit" fullWidth variant="contained" sx={{ mt: 2 }}>
-        Register
+
+      <Button
+        type="submit"
+        fullWidth
+        variant="contained"
+        disabled={loading}
+        sx={{
+          mt: 3,
+          py: 1.5,
+          borderRadius: 3,
+          textTransform: "none",
+          fontWeight: 600,
+        }}
+      >
+        {loading ? <CircularProgress size={24} /> : "Register"}
       </Button>
     </Box>
   );

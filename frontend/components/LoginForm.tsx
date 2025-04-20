@@ -1,20 +1,38 @@
 "use client";
-
 import { useState } from "react";
-import { TextField, Button, Box } from "@mui/material";
+import { useRouter } from "next/navigation";
+import { TextField, Button, Box, Alert, CircularProgress } from "@mui/material";
+import { loginApi, setTokens } from "../lib/auth";
 
 export default function LoginForm() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: call your login API
-    console.log("login with", { email, password });
+    setError(null);
+    setLoading(true);
+    try {
+      const tokens = await loginApi(email, password);
+      setTokens(tokens);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <Box component="form" onSubmit={handleSubmit} noValidate>
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+
       <TextField
         label="Email"
         type="email"
@@ -23,6 +41,7 @@ export default function LoginForm() {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         required
+        InputProps={{ sx: { borderRadius: 2 } }}
       />
       <TextField
         label="Password"
@@ -32,9 +51,23 @@ export default function LoginForm() {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         required
+        InputProps={{ sx: { borderRadius: 2 } }}
       />
-      <Button type="submit" fullWidth variant="contained" sx={{ mt: 2 }}>
-        Log In
+
+      <Button
+        type="submit"
+        fullWidth
+        variant="contained"
+        disabled={loading}
+        sx={{
+          mt: 3,
+          py: 1.5,
+          borderRadius: 3,
+          textTransform: "none",
+          fontWeight: 600,
+        }}
+      >
+        {loading ? <CircularProgress size={24} /> : "Log In"}
       </Button>
     </Box>
   );
