@@ -104,3 +104,47 @@ class CategoryAPITestCase(TestCase):
         self.assertEqual(len(data), 3)
         ids = [item['id'] for item in data]
         self.assertCountEqual(ids, [self.cat1.id, self.cat2.id, self.cat3.id])
+
+
+class BookingAPITestCase(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.cat1 = Category.objects.get(name='Cat 1')
+        now = timezone.now()
+        self.slot = TimeSlot.objects.create(
+            category=self.cat1,
+            start=now,
+            end=now + timedelta(hours=1)
+        )
+        self.user = User.objects.create_user(
+            first_name='user',
+            last_name='user',
+            email='user@example.com',
+            password='verysecretpassword'
+        )
+        self.url = reverse('book-timeslot')
+
+    def test_unauthenticated_cannot_book(self):
+        resp = self.client.post(self.url, {'slot_id': self.slot.id})
+        self.assertEqual(resp.status_code, 401)
+
+    def test_successful_booking(self):
+        self.client.force_authenticate(user=self.user)
+        resp = self.client.post(self.url, {'slot_id': self.slot.id})
+        self.assertEqual(resp.status_code, 201)
+        self.assertTrue(Booking.objects.filter(slot=self.slot, user=self.user).exists())
+        data = resp.json()
+        self.assertEqual(data['slot'], self.slot.id)
+        self.assertIn('id', data)
+        self.assertIn('signed_up_at', data)
+
+    def test_booking_nonexistent_slot(self):
+        self.client.force_authenticate(user=self.user)
+        resp = self.client.post(self.url, {'slot_id': 9999})
+        self.assertEqual(resp.status_code, 404)
+
+    def test_booking_already_taken(self):
+        Booking.objects.create(user=self.user, slot=self.slot)
+        self.client.force_authenticate(user=self.user)
+        resp = self.client.post(self.url, {'slot_id': self.slot.id})
+        self.assertEqual(resp.status_code, 409)

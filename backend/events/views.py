@@ -3,9 +3,10 @@ from rest_framework.response import Response
 from rest_framework.generics import ListAPIView
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import get_object_or_404
 
-from .models import TimeSlot, Category
-from .serializers import TimeSlotSerializer, CategorySerializer
+from .models import TimeSlot, Category, Booking
+from .serializers import TimeSlotSerializer, CategorySerializer, BookingSerializer
 
 class AvailableTimeSlotsView(APIView):
     permission_classes = [IsAuthenticated]
@@ -33,3 +34,27 @@ class CategoryListView(ListAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     
+
+
+class BookingCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        slot_id = request.data.get('slot_id')
+        if slot_id is None:
+            return Response(
+                {"detail": "Missing `slot_id` in request body."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        slot = get_object_or_404(TimeSlot, pk=slot_id)
+
+        if hasattr(slot, 'booking'):
+            return Response(
+                {"detail": "This time slot is already taken."},
+                status=status.HTTP_409_CONFLICT
+            )
+
+        booking = Booking.objects.create(user=request.user, slot=slot)
+        serializer = BookingSerializer(booking, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
