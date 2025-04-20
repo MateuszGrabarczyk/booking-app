@@ -12,8 +12,6 @@ class UserRegisterTests(APITestCase):
 
     def test_register_success(self):
         payload = {
-            'first_name': 'John',
-            'last_name': 'Doe',
             'email': 'john@example.com',
             'password': 'ComplexP@ssw0rd',
             'password2': 'ComplexP@ssw0rd',
@@ -26,8 +24,6 @@ class UserRegisterTests(APITestCase):
 
     def test_register_password_mismatch(self):
         payload = {
-            'first_name': 'Jane',
-            'last_name': 'Smith',
             'email': 'jane@example.com',
             'password': 'ComplexP@ssw0rd',
             'password2': 'DifferentP@ssw0rd',
@@ -38,19 +34,14 @@ class UserRegisterTests(APITestCase):
 
     def test_register_missing_fields(self):
         payload = {
-            'first_name': 'Alice',
-            'email': 'alice@example.com',
             'password': 'ComplexP@ssw0rd',
             'password2': 'ComplexP@ssw0rd',
         }
         response = self.client.post(self.url, payload, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('last_name', response.data)
 
     def test_register_invalid_password(self):
         payload = {
-            'first_name': 'Bob',
-            'last_name': 'Builder',
             'email': 'bob@example.com',
             'password': '123',
             'password2': '123',
@@ -66,8 +57,6 @@ class TokenAuthTests(APITestCase):
         self.token_url = reverse('token_obtain')
         self.refresh_url = reverse('token_refresh')
         self.user_data = {
-            'first_name': 'Test',
-            'last_name': 'User',
             'email': 'testuser@example.com',
             'password': 'ComplexP@ssw0rd',
             'password2': 'ComplexP@ssw0rd',
@@ -114,8 +103,6 @@ class UserProfileTests(APITestCase):
         self.profile_url = reverse('user-profile')
 
         self.user_data = {
-            'first_name': 'Test',
-            'last_name': 'User',
             'email': 'testuser@example.com',
             'password': 'ComplexP@ssw0rd',
             'password2': 'ComplexP@ssw0rd',

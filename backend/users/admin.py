@@ -5,11 +5,10 @@ from .models import User, UserProfile
 @admin.register(User)
 class UserAdmin(DjangoUserAdmin):
     ordering = ("email",)
-    list_display = ("email", "first_name", "last_name", "is_staff", "is_superuser")
+    list_display = ("email", "is_staff", "is_superuser")
 
     fieldsets = (
         (None,{"fields": ("email", "password")}),
-        ("Personal info", {"fields": ("first_name", "last_name")}),
         ("Permissions", {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
         ("Important dates", {"fields": ("last_login",)}),
     )
@@ -17,11 +16,11 @@ class UserAdmin(DjangoUserAdmin):
     add_fieldsets = (
         (None, {
             "classes": ("wide",),
-            "fields": ("email", "first_name", "last_name", "password1", "password2", "is_staff", "is_superuser"),
+            "fields": ("email", "password1", "password2", "is_staff", "is_superuser"),
         }),
     )
 
-    search_fields = ("email", "first_name", "last_name")
+    search_fields = ("email",)
 
 
 @admin.register(UserProfile)

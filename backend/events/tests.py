@@ -29,8 +29,6 @@ class TimeSlotAPITestCase(TestCase):
             end=now + timedelta(hours=3)
         )
         self.user = User.objects.create_user(
-            first_name='user',
-            last_name='user',
             email='user@example.com',
             password='verysecretpassword'
         )
@@ -96,8 +94,6 @@ class CategoryAPITestCase(TestCase):
         self.cat2 = Category.objects.get(name='Cat 2')
         self.cat3 = Category.objects.get(name='Cat 3')
         self.user = User.objects.create_user(
-            first_name='user',
-            last_name='user',
             email='user@example.com',
             password='verysecretpassword'
         )
@@ -128,8 +124,6 @@ class BookingAPITestCase(TestCase):
             end=now + timedelta(hours=1)
         )
         self.user = User.objects.create_user(
-            first_name='user',
-            last_name='user',
             email='user@example.com',
             password='verysecretpassword'
         )
