@@ -1,0 +1,106 @@
+from django.urls import reverse
+from rest_framework import status
+from rest_framework.test import APITestCase
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class UserRegisterTests(APITestCase):
+    def setUp(self):
+        self.url = reverse('user-register')
+
+    def test_register_success(self):
+        payload = {
+            'first_name': 'John',
+            'last_name': 'Doe',
+            'email': 'john@example.com',
+            'password': 'ComplexP@ssw0rd',
+            'password2': 'ComplexP@ssw0rd',
+        }
+        response = self.client.post(self.url, payload, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn('user', response.data)
+        self.assertEqual(response.data['user']['email'], payload['email'])
+        self.assertTrue(User.objects.filter(email=payload['email']).exists())
+
+    def test_register_password_mismatch(self):
+        payload = {
+            'first_name': 'Jane',
+            'last_name': 'Smith',
+            'email': 'jane@example.com',
+            'password': 'ComplexP@ssw0rd',
+            'password2': 'DifferentP@ssw0rd',
+        }
+        response = self.client.post(self.url, payload, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('non_field_errors', response.data)
+
+    def test_register_missing_fields(self):
+        payload = {
+            'first_name': 'Alice',
+            'email': 'alice@example.com',
+            'password': 'ComplexP@ssw0rd',
+            'password2': 'ComplexP@ssw0rd',
+        }
+        response = self.client.post(self.url, payload, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('last_name', response.data)
+
+    def test_register_invalid_password(self):
+        payload = {
+            'first_name': 'Bob',
+            'last_name': 'Builder',
+            'email': 'bob@example.com',
+            'password': '123',
+            'password2': '123',
+        }
+        response = self.client.post(self.url, payload, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('password', response.data)
+
+
+class TokenAuthTests(APITestCase):
+    def setUp(self):
+        self.register_url = reverse('user-register')
+        self.token_url = reverse('token_obtain')
+        self.refresh_url = reverse('token_refresh')
+        self.user_data = {
+            'first_name': 'Test',
+            'last_name': 'User',
+            'email': 'testuser@example.com',
+            'password': 'ComplexP@ssw0rd',
+            'password2': 'ComplexP@ssw0rd',
+        }
+        self.client.post(self.register_url, self.user_data, format='json')
+
+    def test_obtain_token_success(self):
+        login_data = {
+            'email': self.user_data['email'],
+            'password': self.user_data['password'],
+        }
+        response = self.client.post(self.token_url, login_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('access', response.data)
+        self.assertIn('refresh', response.data)
+        self.refresh_token = response.data['refresh']
+
+    def test_obtain_token_fail(self):
+        bad_data = {
+            'email': self.user_data['email'],
+            'password': 'WrongPassword',
+        }
+        response = self.client.post(self.token_url, bad_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertIn('detail', response.data)
+
+    def test_refresh_token_success(self):
+        resp = self.client.post(self.token_url, {'email': self.user_data['email'], 'password': self.user_data['password']}, format='json')
+        refresh = resp.data.get('refresh')
+        response = self.client.post(self.refresh_url, {'refresh': refresh}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('access', response.data)
+
+    def test_refresh_token_fail(self):
+        response = self.client.post(self.refresh_url, {'refresh': 'invalidtoken'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertIn('detail', response.data)

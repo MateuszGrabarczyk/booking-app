@@ -12,14 +12,16 @@ python manage.py migrate --noinput
 
 # 3) ensure we have a superuser
 #    default to admin/admin@example.com/admin if nothing else is set
-export DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME:-admin}
+export DJANGO_SUPERUSER_FIRST_NAME=${DJANGO_SUPERUSER_FIRST_NAME:-admin}
+export DJANGO_SUPERUSER_LAST_NAME=${DJANGO_SUPERUSER_LAST_NAME:-admin}
 export DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL:-admin@example.com}
 export DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD:-admin}
 
 python manage.py createsuperuser \
   --no-input \
-  --username "$DJANGO_SUPERUSER_USERNAME" \
   --email    "$DJANGO_SUPERUSER_EMAIL" \
+  --first_name "$DJANGO_SUPERUSER_FIRST_NAME" \
+  --last_name  "$DJANGO_SUPERUSER_LAST_NAME" \
 || echo "Superuser already exists, skipping."
 
 # 4) fire up the dev server
