@@ -1,11 +1,15 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.generics import ListAPIView
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 
-from .models import TimeSlot
-from .serializers import TimeSlotSerializer
+from .models import TimeSlot, Category
+from .serializers import TimeSlotSerializer, CategorySerializer
 
 class AvailableTimeSlotsView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         raw = request.GET.get('categories', '')
         try:
@@ -22,3 +26,10 @@ class AvailableTimeSlotsView(APIView):
 
         serializer = TimeSlotSerializer(qs, many=True)
         return Response(serializer.data)
+
+
+class CategoryListView(ListAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    
