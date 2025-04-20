@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
+from .models import UserProfile
+from events.models import Category
 
 User = get_user_model()
 
@@ -25,3 +27,15 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             last_name=validated_data['last_name'],
             password=validated_data['password']
         )
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    preferred_categories = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(),
+        many=True,
+        required=False,
+    )
+
+    class Meta:
+        model = UserProfile
+        fields = ['preferred_categories']
