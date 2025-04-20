@@ -25,7 +25,7 @@ class AvailableTimeSlotsView(APIView):
             category_id__in=cat_ids
         ).order_by('start')
 
-        serializer = TimeSlotSerializer(qs, many=True)
+        serializer = TimeSlotSerializer(qs, many=True, context={'request': request})
         return Response(serializer.data)
 
 

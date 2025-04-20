@@ -41,17 +41,17 @@ class TimeSlotAPITestCase(TestCase):
         resp = self.client.get(self.url, {'categories': f'{self.cat1.id},{self.cat2.id}'})
         self.assertEqual(resp.status_code, 401)
 
-    def test_get_all_slots_with_is_taken_flag(self):
+    def test_get_all_slots_with_is_taken_and_user_flags(self):
         self.client.force_authenticate(user=self.user)
         resp = self.client.get(self.url, {'categories': f'{self.cat1.id},{self.cat2.id}'})
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
         self.assertEqual(len(data), 2)
         by_id = {item['id']: item for item in data}
-        self.assertIn(self.slot1.id, by_id)
         self.assertFalse(by_id[self.slot1.id]['is_taken'])
-        self.assertIn(self.slot2.id, by_id)
+        self.assertFalse(by_id[self.slot1.id]['is_booked_by_user'])
         self.assertTrue(by_id[self.slot2.id]['is_taken'])
+        self.assertTrue(by_id[self.slot2.id]['is_booked_by_user'])
 
     def test_filtering_by_single_category(self):
         self.client.force_authenticate(user=self.user)
@@ -61,6 +61,7 @@ class TimeSlotAPITestCase(TestCase):
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]['id'], self.slot1.id)
         self.assertFalse(data[0]['is_taken'])
+        self.assertFalse(data[0]['is_booked_by_user'])
 
     def test_empty_or_missing_categories_param(self):
         self.client.force_authenticate(user=self.user)
@@ -76,6 +77,16 @@ class TimeSlotAPITestCase(TestCase):
         resp = self.client.get(self.url, {'categories': 'foo,bar'})
         self.assertEqual(resp.status_code, 400)
         self.assertIn('detail', resp.json())
+
+    def test_is_booked_by_user_flag_separate(self):
+        self.client.force_authenticate(user=self.user)
+        resp = self.client.get(self.url, {'categories': f'{self.cat1.id},{self.cat2.id}'})
+        data = resp.json()
+        by_id = {item['id']: item for item in data}
+        self.assertIn('is_booked_by_user', by_id[self.slot1.id])
+        self.assertIn('is_booked_by_user', by_id[self.slot2.id])
+        self.assertFalse(by_id[self.slot1.id]['is_booked_by_user'])
+        self.assertTrue(by_id[self.slot2.id]['is_booked_by_user'])
 
 
 class CategoryAPITestCase(TestCase):
