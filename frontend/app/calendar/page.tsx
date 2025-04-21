@@ -1,20 +1,42 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Scheduler } from "@aldabil/react-scheduler";
 import Box from "@mui/material/Box";
+import Autocomplete from "@mui/material/Autocomplete";
+import TextField from "@mui/material/TextField";
+import CircularProgress from "@mui/material/CircularProgress";
 import { useAuthGuard } from "@/lib/useAuthGuard";
 import NavBar from "@/components/NavBar";
 import { useAvailableSlots } from "@/hooks/useAvailableSlots";
+import { useCategories } from "@/hooks/useCategories";
 import { Slot } from "../api/slots/route";
+import { Category } from "../api/categories/route";
+import { Chip } from "@mui/material";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 
 export default function WeekCalendar() {
   const isAuth = useAuthGuard();
   const [mounted, setMounted] = useState(false);
 
-  const [categories] = useState<number[]>([1, 2, 3]);
+  const {
+    categories: allCats,
+    loading: catsLoading,
+    error: catsError,
+  } = useCategories();
 
-  const { slots, loading, error } = useAvailableSlots(categories);
+  const [selectedCats, setSelectedCats] = useState<Category[]>([]);
+
+  useEffect(() => {
+    setSelectedCats(allCats);
+  }, [catsLoading, allCats]);
+
+  const catIds = useMemo(() => selectedCats.map((c) => c.id), [selectedCats]);
+  const {
+    slots,
+    loading: slotsLoading,
+    error: slotsError,
+  } = useAvailableSlots(catIds);
 
   useEffect(() => {
     setMounted(true);
@@ -27,9 +49,9 @@ export default function WeekCalendar() {
     start: new Date(slot.start),
     end: new Date(slot.end),
     title: slot.is_booked_by_user
-      ? `Your Booking - ${slot.category.name}`
+      ? `Your Booking – ${slot.category.name}`
       : slot.is_taken
-      ? `Taken - ${slot.category.name}`
+      ? `Taken – ${slot.category.name}`
       : slot.category.name,
     color: slot.is_booked_by_user
       ? "#4caf50"
@@ -63,7 +85,52 @@ export default function WeekCalendar() {
             overflow: "auto",
           }}
         >
-          {error && <div style={{ color: "red" }}>Error: {error}</div>}
+          {(slotsLoading || slotsError) && (
+            <Box sx={{ mb: 2 }}>
+              {slotsError && (
+                <Box sx={{ color: "error.main" }}>{slotsError}</Box>
+              )}
+            </Box>
+          )}
+          {catsError ? (
+            <Box sx={{ color: "error.main" }}>Failed to load categories</Box>
+          ) : (
+            <Autocomplete
+              multiple
+              disableCloseOnSelect
+              options={allCats}
+              getOptionLabel={(opt) => opt.name}
+              value={selectedCats}
+              onChange={(_, value) => setSelectedCats(value)}
+              limitTags={3}
+              renderTags={(value, getTagProps) =>
+                value.map((option, idx) => {
+                  const tagProps = getTagProps({ index: idx });
+                  const { key, ...other } = tagProps;
+                  return (
+                    <Chip
+                      key={key}
+                      size="small"
+                      variant="outlined"
+                      label={option.name}
+                    />
+                  );
+                })
+              }
+              popupIcon={<KeyboardArrowDownIcon />}
+              disableClearable
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Categories"
+                  placeholder="Select…"
+                  size="small"
+                  variant="outlined"
+                />
+              )}
+              sx={{ mb: 2 }}
+            />
+          )}
           <Scheduler
             view="week"
             editable={false}

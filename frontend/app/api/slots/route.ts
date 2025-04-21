@@ -1,8 +1,9 @@
 import { authFetch } from "@/lib/auth";
+import { Category } from "../categories/route";
 
 export type Slot = {
   id: number;
-  category: { id: number; name: string };
+  category: Category;
   start: string;
   end: string;
   is_taken: boolean;
@@ -25,7 +26,6 @@ export async function fetchAvailableSlots(
   );
 
   if (!res.ok) {
-    // you could special‑case 401 here, but authFetch already tried to refresh once
     const errBody = await res.text().catch(() => "");
     throw new Error(`Error ${res.status}: ${res.statusText} ${errBody}`);
   }
