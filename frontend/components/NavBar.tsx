@@ -3,6 +3,7 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 
 import LogoutButton from "./LogoutButton";
+import UpdatePreferencesButton from "./UpdatePreferencesButton";
 
 export default function NavBar() {
   return (
@@ -17,7 +18,7 @@ export default function NavBar() {
         >
           Booking App
         </Typography>
-
+        <UpdatePreferencesButton />
         <LogoutButton />
       </Toolbar>
     </AppBar>

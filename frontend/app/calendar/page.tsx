@@ -85,7 +85,7 @@ export default function WeekCalendar() {
             overflow: "auto",
           }}
         >
-          {(slotsLoading || slotsError) && (
+          {slotsError && (
             <Box sx={{ mb: 2 }}>
               {slotsError && (
                 <Box sx={{ color: "error.main" }}>{slotsError}</Box>
