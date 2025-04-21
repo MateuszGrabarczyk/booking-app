@@ -9,17 +9,19 @@ import {
   DialogActions,
   List,
   ListItemButton,
-  ListItemIcon,
   ListItemText,
   Checkbox,
   Typography,
 } from "@mui/material";
 import SettingsIcon from "@mui/icons-material/Settings";
-import CategoryIcon from "@mui/icons-material/Category";
+import { updateProfile } from "@/app/api/profile/route";
 
 export default function UpdatePreferencesButton() {
   const { profile } = useProfiles();
   const { categories } = useCategories();
+  const [currentCats, setCurrentCats] = useState<number[]>(
+    profile?.preferred_categories || []
+  );
   const [open, setOpen] = useState(false);
   const [selectedCats, setSelectedCats] = useState<number[]>(
     profile?.preferred_categories || []
@@ -27,12 +29,13 @@ export default function UpdatePreferencesButton() {
 
   useEffect(() => {
     if (profile?.preferred_categories) {
+      setCurrentCats(profile.preferred_categories);
       setSelectedCats(profile.preferred_categories);
     }
   }, [profile]);
 
   const handleOpen = () => {
-    setSelectedCats(profile?.preferred_categories || []);
+    setSelectedCats(currentCats);
     setOpen(true);
   };
 
@@ -48,9 +51,15 @@ export default function UpdatePreferencesButton() {
     );
   };
 
-  const handleSave = () => {
-    console.log("Updated preferences:", selectedCats);
-    setOpen(false);
+  const handleSave = async () => {
+    try {
+      const updatedProfile = await updateProfile(selectedCats);
+      setCurrentCats(updatedProfile.preferred_categories);
+      setSelectedCats(updatedProfile.preferred_categories);
+    } catch (error) {
+    } finally {
+      setOpen(false);
+    }
   };
 
   return (
@@ -101,10 +110,20 @@ export default function UpdatePreferencesButton() {
           )}
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={handleClose} color="primary" variant="outlined">
+          <Button
+            onClick={handleClose}
+            color="primary"
+            variant="outlined"
+            sx={{ borderRadius: 3 }}
+          >
             Cancel
           </Button>
-          <Button onClick={handleSave} color="primary" variant="contained">
+          <Button
+            onClick={handleSave}
+            color="primary"
+            variant="contained"
+            sx={{ borderRadius: 3 }}
+          >
             Save
           </Button>
         </DialogActions>
