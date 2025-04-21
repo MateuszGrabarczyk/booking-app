@@ -18,6 +18,7 @@ export default function LoginForm() {
     try {
       const tokens = await loginApi(email, password);
       setTokens(tokens);
+      router.push("/calendar");
     } catch (err: any) {
       setError(err.message);
     } finally {

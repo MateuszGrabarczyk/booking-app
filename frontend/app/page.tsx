@@ -1,12 +1,28 @@
 "use client";
 
-import { useState } from "react";
-import { Container, Card, Tabs, Tab, Box, Typography } from "@mui/material";
+import { useEffect, useState } from "react";
+import { Card, Tabs, Tab, Box, Typography } from "@mui/material";
 import LoginForm from "../components/LoginForm";
 import RegisterForm from "../components/RegisterForm";
+import { getAccessToken } from "@/lib/auth";
+import { useRouter } from "next/navigation";
 
 export default function AuthPage() {
+  const router = useRouter();
+  const [checked, setChecked] = useState(false);
   const [tab, setTab] = useState(0);
+
+  useEffect(() => {
+    const token = getAccessToken();
+    if (token) {
+      router.replace("/calendar");
+    } else {
+      setChecked(true);
+    }
+  }, [router]);
+
+  if (!checked) return null;
+
   return (
     <Box
       sx={{

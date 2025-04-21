@@ -22,6 +22,7 @@ export default function RegisterForm() {
     setLoading(true);
     try {
       await registerApi(email, password, confirm);
+      router.push("/");
     } catch (err: any) {
       setError(err.message);
     } finally {
