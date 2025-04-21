@@ -3,16 +3,10 @@
 import { useState, useEffect } from "react";
 import { Scheduler } from "@aldabil/react-scheduler";
 import Box from "@mui/material/Box";
-import AppBar from "@mui/material/AppBar";
-import Toolbar from "@mui/material/Toolbar";
-import Typography from "@mui/material/Typography";
 import { useAuthGuard } from "@/lib/useAuthGuard";
-import { clearTokens } from "@/lib/auth";
-import { useRouter } from "next/navigation";
-import { Button } from "@mui/material";
+import NavBar from "@/components/NavBar";
 
 export default function WeekCalendar() {
-  const router = useRouter();
   const isAuth = useAuthGuard();
   const [mounted, setMounted] = useState(false);
 
@@ -22,40 +16,9 @@ export default function WeekCalendar() {
 
   if (!isAuth || !mounted) return null;
 
-  const handleLogout = () => {
-    clearTokens();
-    router.replace("/");
-  };
-
   return (
     <Box sx={{ height: "100vh", display: "flex", flexDirection: "column" }}>
-      <AppBar position="static" elevation={0} sx={{ bgcolor: "#f5f5f5" }}>
-        <Toolbar>
-          <Typography
-            variant="h6"
-            color="primary"
-            fontWeight={600}
-            component="div"
-            sx={{ flexGrow: 1 }}
-          >
-            Booking App
-          </Typography>
-          <Button
-            color="primary"
-            variant="contained"
-            onClick={handleLogout}
-            sx={{
-              py: 1,
-              borderRadius: 3,
-              textTransform: "none",
-              fontWeight: 600,
-            }}
-          >
-            Log Out
-          </Button>
-        </Toolbar>
-      </AppBar>
-
+      <NavBar />
       <Box
         sx={{
           flex: 1,
