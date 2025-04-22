@@ -143,6 +143,7 @@ export default function WeekCalendar() {
           <Scheduler
             view="week"
             editable={false}
+            disableViewNavigator={true}
             events={events}
             timeZone="Europe/Warsaw"
             week={{
@@ -190,7 +191,7 @@ export default function WeekCalendar() {
               );
             }}
             viewerTitleComponent={(event) => (
-              <Typography variant="h6">{(event as any).title}</Typography>
+              <Typography variant="h6">{event.title}</Typography>
             )}
           />
         </Box>
