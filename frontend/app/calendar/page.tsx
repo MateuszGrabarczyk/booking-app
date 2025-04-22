@@ -7,39 +7,29 @@ import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
-import { useAuthGuard } from "@/lib/useAuthGuard";
 import NavBar from "@/components/NavBar";
+import { useAuthGuard } from "@/lib/useAuthGuard";
 import { useAvailableSlots } from "@/hooks/useAvailableSlots";
-import { useCategories } from "@/hooks/useCategories";
 import { Slot, createBooking, deleteBooking } from "../api/slots/route";
-import { Category } from "../api/categories/route";
 import { Chip } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
+import { usePreferences } from "@/context/PreferencesContext";
 
 export default function WeekCalendar() {
   const isAuth = useAuthGuard();
   const [mounted, setMounted] = useState(false);
 
-  const {
-    categories: allCats,
-    loading: catsLoading,
-    error: catsError,
-  } = useCategories();
-  const [selectedCats, setSelectedCats] = useState<Category[]>([]);
-  useEffect(() => setSelectedCats(allCats), [catsLoading, allCats]);
+  const { allCats, selectedCats, setSelectedCats } = usePreferences();
 
   const catIds = useMemo(() => selectedCats.map((c) => c.id), [selectedCats]);
-  const {
-    slots,
-    loading: slotsLoading,
-    error: slotsError,
-    refetch: reloadSlots,
-  } = useAvailableSlots(catIds);
+  const { slots, refetch: reloadSlots } = useAvailableSlots(catIds);
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  if (!isAuth || !mounted) return null;
+  if (!isAuth || mounted === false) return null;
 
   const events = slots.map((slot: Slot) => ({
     event_id: slot.id,
@@ -84,45 +74,41 @@ export default function WeekCalendar() {
             overflow: "auto",
           }}
         >
-          {catsError ? (
-            <Box sx={{ color: "error.main" }}>Failed to load categories</Box>
-          ) : (
-            <Autocomplete
-              multiple
-              disableCloseOnSelect
-              options={allCats}
-              getOptionLabel={(opt) => opt.name}
-              value={selectedCats}
-              onChange={(_, value) => setSelectedCats(value)}
-              limitTags={3}
-              renderTags={(value, getTagProps) =>
-                value.map((option, idx) => {
-                  const { key, ...other } = getTagProps({ index: idx });
-                  return (
-                    <Chip
-                      key={key}
-                      size="small"
-                      variant="outlined"
-                      label={option.name}
-                      {...other}
-                    />
-                  );
-                })
-              }
-              popupIcon={<KeyboardArrowDownIcon />}
-              disableClearable
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Categories"
-                  placeholder="Select…"
-                  size="small"
-                  variant="outlined"
-                />
-              )}
-              sx={{ mb: 2 }}
-            />
-          )}
+          <Autocomplete
+            multiple
+            disableCloseOnSelect
+            options={allCats}
+            getOptionLabel={(opt) => opt.name}
+            value={selectedCats}
+            onChange={(_, value) => setSelectedCats(value)}
+            limitTags={3}
+            renderTags={(value, getTagProps) =>
+              value.map((option, idx) => {
+                const { key, ...other } = getTagProps({ index: idx });
+                return (
+                  <Chip
+                    key={key}
+                    size="small"
+                    variant="outlined"
+                    label={option.name}
+                    {...other}
+                  />
+                );
+              })
+            }
+            popupIcon={<KeyboardArrowDownIcon />}
+            disableClearable
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Categories"
+                placeholder="Select…"
+                size="small"
+                variant="outlined"
+              />
+            )}
+            sx={{ mb: 2 }}
+          />
 
           <Scheduler
             view="week"

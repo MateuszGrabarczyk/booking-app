@@ -1,6 +1,6 @@
+"use client";
+
 import { useState, useEffect } from "react";
-import { useCategories } from "@/hooks/useCategories";
-import { useProfiles } from "@/hooks/useProfiles";
 import {
   Button,
   Dialog,
@@ -15,27 +15,21 @@ import {
 } from "@mui/material";
 import SettingsIcon from "@mui/icons-material/Settings";
 import { updateProfile } from "@/app/api/profile/route";
+import { usePreferences } from "@/context/PreferencesContext";
+import type { Category } from "@/app/api/categories/route";
 
 export default function UpdatePreferencesButton() {
-  const { profile } = useProfiles();
-  const { categories } = useCategories();
-  const [currentCats, setCurrentCats] = useState<number[]>(
-    profile?.preferred_categories || []
-  );
+  const { allCats, selectedCats, setSelectedCats } = usePreferences();
+
+  const [tempSelected, setTempSelected] = useState<Category[]>([]);
   const [open, setOpen] = useState(false);
-  const [selectedCats, setSelectedCats] = useState<number[]>(
-    profile?.preferred_categories || []
-  );
 
   useEffect(() => {
-    if (profile?.preferred_categories) {
-      setCurrentCats(profile.preferred_categories);
-      setSelectedCats(profile.preferred_categories);
-    }
-  }, [profile]);
+    setTempSelected(selectedCats);
+  }, [selectedCats]);
 
   const handleOpen = () => {
-    setSelectedCats(currentCats);
+    setTempSelected(selectedCats);
     setOpen(true);
   };
 
@@ -44,18 +38,21 @@ export default function UpdatePreferencesButton() {
   };
 
   const handleToggle = (catId: number) => {
-    setSelectedCats((prevSelected) =>
-      prevSelected.includes(catId)
-        ? prevSelected.filter((id) => id !== catId)
-        : [...prevSelected, catId]
+    setTempSelected((prev) =>
+      prev.find((c) => c.id === catId)
+        ? prev.filter((c) => c.id !== catId)
+        : [...prev, allCats.find((c) => c.id === catId)!]
     );
   };
 
   const handleSave = async () => {
     try {
-      const updatedProfile = await updateProfile(selectedCats);
-      setCurrentCats(updatedProfile.preferred_categories);
-      setSelectedCats(updatedProfile.preferred_categories);
+      const updatedProfile = await updateProfile(tempSelected.map((c) => c.id));
+
+      const newCats = allCats.filter((c) =>
+        updatedProfile.preferred_categories.includes(c.id)
+      );
+      setSelectedCats(newCats);
     } catch (error) {
     } finally {
       setOpen(false);
@@ -79,15 +76,16 @@ export default function UpdatePreferencesButton() {
       >
         Update preferences
       </Button>
+
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <SettingsIcon color="primary" />
           User Preferences
         </DialogTitle>
         <DialogContent dividers>
-          {categories && categories.length > 0 ? (
+          {allCats.length > 0 ? (
             <List>
-              {categories.map((cat) => (
+              {allCats.map((cat) => (
                 <ListItemButton
                   key={cat.id}
                   onClick={() => handleToggle(cat.id)}
@@ -95,7 +93,7 @@ export default function UpdatePreferencesButton() {
                 >
                   <Checkbox
                     edge="start"
-                    checked={selectedCats.includes(cat.id)}
+                    checked={tempSelected.some((c) => c.id === cat.id)}
                     tabIndex={-1}
                     disableRipple
                   />
