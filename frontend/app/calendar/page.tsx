@@ -11,10 +11,11 @@ import { useAuthGuard } from "@/lib/useAuthGuard";
 import NavBar from "@/components/NavBar";
 import { useAvailableSlots } from "@/hooks/useAvailableSlots";
 import { useCategories } from "@/hooks/useCategories";
-import { Slot, createBooking } from "../api/slots/route";
+import { Slot, createBooking, deleteBooking } from "../api/slots/route";
 import { Category } from "../api/categories/route";
 import { Chip } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 
 export default function WeekCalendar() {
   const isAuth = useAuthGuard();
@@ -55,6 +56,7 @@ export default function WeekCalendar() {
       ? "#f44336"
       : undefined,
     rawSlot: slot,
+    deletable: slot.is_booked_by_user,
   }));
 
   return (
@@ -135,6 +137,16 @@ export default function WeekCalendar() {
               weekDays: [0, 1, 2, 3, 4, 5, 6],
               weekStartOn: 0,
             }}
+            onDelete={async (id: number) => {
+              try {
+                await deleteBooking(id);
+                reloadSlots();
+              } catch (err: any) {
+                console.error(err);
+                alert("Failed to cancel booking: " + err.message);
+                throw err;
+              }
+            }}
             viewerExtraComponent={(fields, event) => {
               const slot = (event as any).rawSlot as Slot;
               if (slot.is_taken || slot.is_booked_by_user) return null;
@@ -143,6 +155,7 @@ export default function WeekCalendar() {
                   <Button
                     variant="contained"
                     size="small"
+                    startIcon={<EventAvailableIcon />}
                     onClick={async () => {
                       try {
                         await createBooking(slot.id);
@@ -153,7 +166,7 @@ export default function WeekCalendar() {
                       }
                     }}
                   >
-                    Sign up
+                    Book an event
                   </Button>
                 </Box>
               );
