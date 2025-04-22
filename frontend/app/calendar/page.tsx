@@ -158,6 +158,7 @@ export default function WeekCalendar() {
               try {
                 await deleteBooking(id);
                 reloadSlots();
+                return id;
               } catch (err: any) {
                 console.error(err);
                 alert("Failed to cancel booking: " + err.message);
