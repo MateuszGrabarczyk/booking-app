@@ -24,7 +24,7 @@ export default function LogoutButton() {
         fontWeight: 600,
       }}
     >
-      Log Out
+      Log Out
     </Button>
   );
 }

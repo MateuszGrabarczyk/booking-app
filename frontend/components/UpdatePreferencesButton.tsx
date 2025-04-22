@@ -14,6 +14,8 @@ import {
   Typography,
 } from "@mui/material";
 import SettingsIcon from "@mui/icons-material/Settings";
+import CloseIcon from "@mui/icons-material/Close";
+import SaveIcon from "@mui/icons-material/Save";
 import { updateProfile } from "@/app/api/profile/route";
 import { usePreferences } from "@/context/PreferencesContext";
 import type { Category } from "@/app/api/categories/route";
@@ -113,6 +115,7 @@ export default function UpdatePreferencesButton() {
             color="primary"
             variant="outlined"
             sx={{ borderRadius: 3 }}
+            startIcon={<CloseIcon />}
           >
             Cancel
           </Button>
@@ -121,6 +124,7 @@ export default function UpdatePreferencesButton() {
             color="primary"
             variant="contained"
             sx={{ borderRadius: 3 }}
+            startIcon={<SaveIcon />}
           >
             Save
           </Button>

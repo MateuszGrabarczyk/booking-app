@@ -184,6 +184,12 @@ export default function WeekCalendar() {
                         alert("Booking failed: " + e.message);
                       }
                     }}
+                    sx={{
+                      py: 1,
+                      borderRadius: 3,
+                      textTransform: "none",
+                      fontWeight: 600,
+                    }}
                   >
                     Book an event
                   </Button>
