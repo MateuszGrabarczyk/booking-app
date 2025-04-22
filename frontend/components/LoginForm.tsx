@@ -20,7 +20,7 @@ export default function LoginForm() {
       const tokens = await loginApi(email, password);
       setTokens(tokens);
       toast.success("Login successful!");
-      router.push("/calendar");
+      router.replace("/calendar");
     } catch (err: any) {
       setError(err.message);
     } finally {
