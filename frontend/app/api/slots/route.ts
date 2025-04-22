@@ -32,3 +32,22 @@ export async function fetchAvailableSlots(
 
   return res.json();
 }
+
+export async function createBooking(
+  slotId: number,
+  signal?: AbortSignal
+): Promise<number> {
+  const res = await authFetch(`${API_URL}/events/timeslots/book/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ slot_id: slotId }),
+    signal,
+  });
+
+  if (!res.ok) {
+    const errBody = await res.text().catch(() => "");
+    throw new Error(`Error ${res.status}: ${res.statusText} ${errBody}`);
+  }
+
+  return res.json();
+}

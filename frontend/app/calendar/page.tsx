@@ -5,12 +5,13 @@ import { Scheduler } from "@aldabil/react-scheduler";
 import Box from "@mui/material/Box";
 import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
-import CircularProgress from "@mui/material/CircularProgress";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
 import { useAuthGuard } from "@/lib/useAuthGuard";
 import NavBar from "@/components/NavBar";
 import { useAvailableSlots } from "@/hooks/useAvailableSlots";
 import { useCategories } from "@/hooks/useCategories";
-import { Slot } from "../api/slots/route";
+import { Slot, createBooking } from "../api/slots/route";
 import { Category } from "../api/categories/route";
 import { Chip } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
@@ -24,23 +25,18 @@ export default function WeekCalendar() {
     loading: catsLoading,
     error: catsError,
   } = useCategories();
-
   const [selectedCats, setSelectedCats] = useState<Category[]>([]);
-
-  useEffect(() => {
-    setSelectedCats(allCats);
-  }, [catsLoading, allCats]);
+  useEffect(() => setSelectedCats(allCats), [catsLoading, allCats]);
 
   const catIds = useMemo(() => selectedCats.map((c) => c.id), [selectedCats]);
   const {
     slots,
     loading: slotsLoading,
     error: slotsError,
+    refetch: reloadSlots,
   } = useAvailableSlots(catIds);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => setMounted(true), []);
 
   if (!isAuth || !mounted) return null;
 
@@ -58,6 +54,7 @@ export default function WeekCalendar() {
       : slot.is_taken
       ? "#f44336"
       : undefined,
+    rawSlot: slot,
   }));
 
   return (
@@ -85,13 +82,6 @@ export default function WeekCalendar() {
             overflow: "auto",
           }}
         >
-          {slotsError && (
-            <Box sx={{ mb: 2 }}>
-              {slotsError && (
-                <Box sx={{ color: "error.main" }}>{slotsError}</Box>
-              )}
-            </Box>
-          )}
           {catsError ? (
             <Box sx={{ color: "error.main" }}>Failed to load categories</Box>
           ) : (
@@ -105,14 +95,14 @@ export default function WeekCalendar() {
               limitTags={3}
               renderTags={(value, getTagProps) =>
                 value.map((option, idx) => {
-                  const tagProps = getTagProps({ index: idx });
-                  const { key, ...other } = tagProps;
+                  const { key, ...other } = getTagProps({ index: idx });
                   return (
                     <Chip
                       key={key}
                       size="small"
                       variant="outlined"
                       label={option.name}
+                      {...other}
                     />
                   );
                 })
@@ -131,10 +121,12 @@ export default function WeekCalendar() {
               sx={{ mb: 2 }}
             />
           )}
+
           <Scheduler
             view="week"
             editable={false}
             events={events}
+            timeZone="Europe/Warsaw"
             week={{
               startHour: 0,
               endHour: 24,
@@ -143,7 +135,32 @@ export default function WeekCalendar() {
               weekDays: [0, 1, 2, 3, 4, 5, 6],
               weekStartOn: 0,
             }}
-            timeZone="Europe/Warsaw"
+            viewerExtraComponent={(fields, event) => {
+              const slot = (event as any).rawSlot as Slot;
+              if (slot.is_taken || slot.is_booked_by_user) return null;
+              return (
+                <Box sx={{ mt: 2, textAlign: "right" }}>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={async () => {
+                      try {
+                        await createBooking(slot.id);
+                        reloadSlots();
+                      } catch (e: any) {
+                        console.error(e);
+                        alert("Booking failed: " + e.message);
+                      }
+                    }}
+                  >
+                    Sign up
+                  </Button>
+                </Box>
+              );
+            }}
+            viewerTitleComponent={(event) => (
+              <Typography variant="h6">{(event as any).title}</Typography>
+            )}
           />
         </Box>
       </Box>
