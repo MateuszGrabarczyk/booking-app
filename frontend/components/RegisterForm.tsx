@@ -11,15 +11,22 @@ export default function RegisterForm() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{
+    email?: string;
+    password2?: string;
+  }>({});
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setFieldErrors({});
+
     if (password !== confirm) {
-      setError("Passwords don't match");
+      setFieldErrors({ password2: "Passwords don't match" });
       return;
     }
+
     setLoading(true);
     try {
       await registerApi(email, password, confirm);
@@ -29,7 +36,15 @@ export default function RegisterForm() {
       toast.success("Registration successful! Please log in.");
       router.push("/");
     } catch (err: any) {
-      setError(err.message);
+      if (err.email) {
+        setFieldErrors((fe) => ({ ...fe, email: err.email[0] }));
+      }
+      if (err.password2) {
+        setFieldErrors((fe) => ({ ...fe, password2: err.password2[0] }));
+      }
+      if (!err.email && !err.password2) {
+        setError(err.detail || "Registration failed");
+      }
     } finally {
       setLoading(false);
     }
@@ -51,6 +66,8 @@ export default function RegisterForm() {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         required
+        error={!!fieldErrors.email}
+        helperText={fieldErrors.email}
         InputProps={{ sx: { borderRadius: 2 } }}
       />
       <TextField
@@ -71,6 +88,8 @@ export default function RegisterForm() {
         value={confirm}
         onChange={(e) => setConfirm(e.target.value)}
         required
+        error={!!fieldErrors.password2}
+        helperText={fieldErrors.password2}
         InputProps={{ sx: { borderRadius: 2 } }}
       />
 

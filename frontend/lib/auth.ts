@@ -30,11 +30,13 @@ export async function registerApi(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password, password2 }),
   });
+
+  const payload = await res.json().catch(() => ({}));
+
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || "Registration failed");
+    throw payload;
   }
-  return;
+  return payload.user;
 }
 
 export async function loginApi(
