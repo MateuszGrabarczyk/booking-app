@@ -36,7 +36,7 @@ class CategoryListView(ListAPIView):
     
 
 
-class BookingCreateView(APIView):
+class BookingView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -58,3 +58,19 @@ class BookingCreateView(APIView):
         booking = Booking.objects.create(user=request.user, slot=slot)
         serializer = BookingSerializer(booking, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def delete(self, request):
+        slot_id = request.data.get('slot_id')
+        if slot_id is None:
+            return Response(
+                {"detail": "Missing `slot_id` in request body."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        booking = get_object_or_404(
+            Booking,
+            user=request.user,
+            slot_id=slot_id
+        )
+        booking.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

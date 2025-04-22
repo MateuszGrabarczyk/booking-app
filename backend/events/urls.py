@@ -1,8 +1,8 @@
 from django.urls import path
-from .views import AvailableTimeSlotsView, CategoryListView, BookingCreateView
+from .views import AvailableTimeSlotsView, CategoryListView, BookingView
 
 urlpatterns = [
     path('timeslots/available/', AvailableTimeSlotsView.as_view(), name='available-timeslots'),
-    path('timeslots/book/',     BookingCreateView.as_view(),  name='book-timeslot'),
+    path('timeslots/booking/', BookingView.as_view(),  name='timeslot-booking'),
     path('timeslots/categories/', CategoryListView.as_view(), name='category-list'),
 ]

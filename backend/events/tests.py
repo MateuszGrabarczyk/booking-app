@@ -113,43 +113,70 @@ class CategoryAPITestCase(TestCase):
         self.assertCountEqual(ids, [self.cat1.id, self.cat2.id, self.cat3.id])
 
 
-class BookingAPITestCase(TestCase):
+class BookingViewAPITestCase(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.cat1 = Category.objects.get(name='Cat 1')
+        self.cat = Category.objects.get(name="Cat 1")
         now = timezone.now()
         self.slot = TimeSlot.objects.create(
-            category=self.cat1,
+            category=self.cat,
             start=now,
             end=now + timedelta(hours=1)
         )
         self.user = User.objects.create_user(
-            email='user@example.com',
-            password='verysecretpassword'
+            email="user@example.com",
+            password="pw"
         )
-        self.url = reverse('book-timeslot')
+        self.other_user = User.objects.create_user(
+            email="other@example.com",
+            password="pw"
+        )
+        self.url = reverse('timeslot-booking')
 
-    def test_unauthenticated_cannot_book(self):
-        resp = self.client.post(self.url, {'slot_id': self.slot.id})
-        self.assertEqual(resp.status_code, 401)
+    def test_unauthenticated_cannot_post_or_delete(self):
+        resp1 = self.client.post(self.url, {'slot_id': self.slot.id})
+        self.assertEqual(resp1.status_code, 401)
+        resp2 = self.client.delete(self.url, {'slot_id': self.slot.id})
+        self.assertEqual(resp2.status_code, 401)
 
-    def test_successful_booking(self):
+    def test_successful_post_creates_booking(self):
         self.client.force_authenticate(user=self.user)
         resp = self.client.post(self.url, {'slot_id': self.slot.id})
         self.assertEqual(resp.status_code, 201)
-        self.assertTrue(Booking.objects.filter(slot=self.slot, user=self.user).exists())
+        self.assertTrue(Booking.objects.filter(
+            user=self.user,
+            slot=self.slot
+        ).exists())
         data = resp.json()
         self.assertEqual(data['slot'], self.slot.id)
         self.assertIn('id', data)
         self.assertIn('signed_up_at', data)
 
-    def test_booking_nonexistent_slot(self):
+    def test_post_nonexistent_slot_returns_404(self):
         self.client.force_authenticate(user=self.user)
         resp = self.client.post(self.url, {'slot_id': 9999})
         self.assertEqual(resp.status_code, 404)
 
-    def test_booking_already_taken(self):
+    def test_cannot_double_book_same_slot(self):
         Booking.objects.create(user=self.user, slot=self.slot)
         self.client.force_authenticate(user=self.user)
         resp = self.client.post(self.url, {'slot_id': self.slot.id})
         self.assertEqual(resp.status_code, 409)
+
+    def test_successful_delete_removes_booking(self):
+        booking = Booking.objects.create(user=self.user, slot=self.slot)
+        self.client.force_authenticate(user=self.user)
+        resp = self.client.delete(self.url, {'slot_id': self.slot.id})
+        self.assertEqual(resp.status_code, 204)
+        self.assertFalse(Booking.objects.filter(pk=booking.pk).exists())
+
+    def test_delete_without_existing_booking_returns_404(self):
+        self.client.force_authenticate(user=self.user)
+        resp = self.client.delete(self.url, {'slot_id': self.slot.id})
+        self.assertEqual(resp.status_code, 404)
+
+    def test_user_cannot_delete_others_booking(self):
+        Booking.objects.create(user=self.other_user, slot=self.slot)
+        self.client.force_authenticate(user=self.user)
+        resp = self.client.delete(self.url, {'slot_id': self.slot.id})
+        self.assertEqual(resp.status_code, 404)
