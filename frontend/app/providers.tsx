@@ -3,6 +3,7 @@
 import React, { ReactNode } from "react";
 import { ThemeProvider, CssBaseline, createTheme } from "@mui/material";
 import { PreferencesProvider } from "@/context/PreferencesContext";
+import { Toaster } from "react-hot-toast";
 
 const theme = createTheme({
   palette: {
@@ -25,6 +26,13 @@ export function Providers({ children }: { children: ReactNode }) {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <PreferencesProvider>{children}</PreferencesProvider>
+      <Toaster
+        position="top-center"
+        reverseOrder={false}
+        toastOptions={{
+          duration: 4000,
+        }}
+      />
     </ThemeProvider>
   );
 }

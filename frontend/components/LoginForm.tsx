@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { TextField, Button, Box, Alert, CircularProgress } from "@mui/material";
 import { loginApi, setTokens } from "../lib/auth";
+import toast from "react-hot-toast";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function LoginForm() {
     try {
       const tokens = await loginApi(email, password);
       setTokens(tokens);
+      toast.success("Login successful!");
       router.push("/calendar");
     } catch (err: any) {
       setError(err.message);

@@ -19,6 +19,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import { updateProfile } from "@/app/api/profile/route";
 import { usePreferences } from "@/context/PreferencesContext";
 import type { Category } from "@/app/api/categories/route";
+import toast from "react-hot-toast";
 
 export default function UpdatePreferencesButton() {
   const { allCats, selectedCats, setSelectedCats } = usePreferences();
@@ -55,7 +56,9 @@ export default function UpdatePreferencesButton() {
         updatedProfile.preferred_categories.includes(c.id)
       );
       setSelectedCats(newCats);
+      toast.success("Preferences updated successfully!");
     } catch (error) {
+      toast.error("Failed to update preferences.");
     } finally {
       setOpen(false);
     }

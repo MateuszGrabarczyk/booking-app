@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { TextField, Button, Box, Alert, CircularProgress } from "@mui/material";
 import { registerApi } from "../lib/auth";
+import toast from "react-hot-toast";
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -22,6 +23,10 @@ export default function RegisterForm() {
     setLoading(true);
     try {
       await registerApi(email, password, confirm);
+      setEmail("");
+      setPassword("");
+      setConfirm("");
+      toast.success("Registration successful! Please log in.");
       router.push("/");
     } catch (err: any) {
       setError(err.message);

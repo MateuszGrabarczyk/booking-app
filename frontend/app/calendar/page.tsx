@@ -15,6 +15,7 @@ import { Chip } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import { usePreferences } from "@/context/PreferencesContext";
+import { toast } from "react-hot-toast";
 
 function getStartOfWeek(date: Date): Date {
   const d = new Date(date);
@@ -159,10 +160,10 @@ export default function WeekCalendar() {
               try {
                 await deleteBooking(id);
                 reloadSlots();
+                toast.success("Booking cancelled.");
                 return id;
               } catch (err: any) {
-                console.error(err);
-                alert("Failed to cancel booking: " + err.message);
+                toast.error("Booking cancellation failed.");
                 throw err;
               }
             }}
@@ -179,9 +180,9 @@ export default function WeekCalendar() {
                       try {
                         await createBooking(slot.id);
                         reloadSlots();
+                        toast.success("Booking confirmed!");
                       } catch (e: any) {
-                        console.error(e);
-                        alert("Booking failed: " + e.message);
+                        toast.error("Booking failed.");
                       }
                     }}
                     sx={{
