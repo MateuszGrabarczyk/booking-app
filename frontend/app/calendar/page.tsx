@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Scheduler } from "@aldabil/react-scheduler";
 import Box from "@mui/material/Box";
 import Autocomplete from "@mui/material/Autocomplete";
@@ -16,20 +16,45 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import { usePreferences } from "@/context/PreferencesContext";
 
+function getStartOfWeek(date: Date): Date {
+  const d = new Date(date);
+  const day = d.getUTCDay();
+  d.setUTCDate(d.getUTCDate() - day);
+  d.setUTCHours(0, 0, 0, 0);
+  return d;
+}
+
+function getEndOfWeek(date: Date): Date {
+  const start = getStartOfWeek(date);
+  const end = new Date(start);
+  end.setUTCDate(end.getUTCDate() + 6);
+  end.setUTCHours(23, 59, 59, 0);
+  return end;
+}
+
 export default function WeekCalendar() {
   const isAuth = useAuthGuard();
-  const [mounted, setMounted] = useState(false);
-
   const { allCats, selectedCats, setSelectedCats } = usePreferences();
-
   const catIds = useMemo(() => selectedCats.map((c) => c.id), [selectedCats]);
-  const { slots, refetch: reloadSlots } = useAvailableSlots(catIds);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const [currentDate, setCurrentDate] = useState(new Date());
 
-  if (!isAuth || mounted === false) return null;
+  const dateRange = useMemo(() => {
+    const start = getStartOfWeek(currentDate);
+    const end = getEndOfWeek(currentDate);
+    return {
+      startDate: start.toISOString(),
+      endDate: end.toISOString(),
+    };
+  }, [currentDate]);
+
+  const { slots, refetch: reloadSlots } = useAvailableSlots(
+    catIds,
+    dateRange.startDate,
+    dateRange.endDate
+  );
+
+  if (!isAuth) return null;
 
   const events = slots.map((slot: Slot) => ({
     event_id: slot.id,
@@ -48,6 +73,11 @@ export default function WeekCalendar() {
     rawSlot: slot,
     deletable: slot.is_booked_by_user,
   }));
+
+  const handleNavigate = (newDate: Date) => {
+    setCurrentDate(newDate);
+    reloadSlots();
+  };
 
   return (
     <Box sx={{ height: "100vh", display: "flex", flexDirection: "column" }}>
@@ -123,6 +153,7 @@ export default function WeekCalendar() {
               weekDays: [0, 1, 2, 3, 4, 5, 6],
               weekStartOn: 0,
             }}
+            onSelectedDateChange={handleNavigate}
             onDelete={async (id: number) => {
               try {
                 await deleteBooking(id);

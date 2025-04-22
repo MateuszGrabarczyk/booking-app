@@ -14,11 +14,17 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 export async function fetchAvailableSlots(
   categories: number[],
+  startDate: string,
+  endDate: string,
   signal?: AbortSignal
 ): Promise<Slot[]> {
-  const qs = categories.join(",");
+  const params = new URLSearchParams({
+    categories: categories.join(","),
+    start_date: startDate,
+    end_date: endDate,
+  });
   const res = await authFetch(
-    `${API_URL}/events/timeslots/available/?categories=${qs}`,
+    `${API_URL}/events/timeslots/available/?${params.toString()}`,
     {
       headers: { "Content-Type": "application/json" },
       signal,

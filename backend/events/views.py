@@ -1,3 +1,4 @@
+from django.utils.dateparse import parse_datetime
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView
@@ -21,8 +22,28 @@ class AvailableTimeSlotsView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        start_str = request.GET.get('start_date')
+        end_str = request.GET.get('end_date')
+        if not start_str or not end_str:
+            return Response(
+                {"detail": "start_date and end_date are required in YYYY-MM-DD or ISO format."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        try:
+            start_dt = parse_datetime(start_str)
+            end_dt = parse_datetime(end_str)
+            if start_dt is None or end_dt is None:
+                raise ValueError
+        except ValueError:
+            return Response(
+                {"detail": "Invalid date format. Use ISO‑8601 or YYYY-MM-DD."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         qs = TimeSlot.objects.filter(
-            category_id__in=cat_ids
+            category_id__in=cat_ids,
+            start__gte=start_dt,
+            end__lte=end_dt,
         ).order_by('start')
 
         serializer = TimeSlotSerializer(qs, many=True, context={'request': request})

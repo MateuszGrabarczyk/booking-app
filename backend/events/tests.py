@@ -34,14 +34,26 @@ class TimeSlotAPITestCase(TestCase):
         )
         Booking.objects.create(user=self.user, slot=self.slot2)
         self.url = reverse('available-timeslots')
+        self.start_date = now.isoformat()
+        self.end_date = (now + timedelta(hours=4)).isoformat()
 
     def test_unauthenticated_cannot_fetch_timeslots(self):
-        resp = self.client.get(self.url, {'categories': f'{self.cat1.id},{self.cat2.id}'})
+        params = {
+            'categories': f'{self.cat1.id},{self.cat2.id}',
+            'start_date': self.start_date,
+            'end_date': self.end_date,
+        }
+        resp = self.client.get(self.url, params)
         self.assertEqual(resp.status_code, 401)
 
     def test_get_all_slots_with_is_taken_and_user_flags(self):
         self.client.force_authenticate(user=self.user)
-        resp = self.client.get(self.url, {'categories': f'{self.cat1.id},{self.cat2.id}'})
+        params = {
+            'categories': f'{self.cat1.id},{self.cat2.id}',
+            'start_date': self.start_date,
+            'end_date': self.end_date,
+        }
+        resp = self.client.get(self.url, params)
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
         self.assertEqual(len(data), 2)
@@ -53,7 +65,12 @@ class TimeSlotAPITestCase(TestCase):
 
     def test_filtering_by_single_category(self):
         self.client.force_authenticate(user=self.user)
-        resp = self.client.get(self.url, {'categories': str(self.cat1.id)})
+        params = {
+            'categories': str(self.cat1.id),
+            'start_date': self.start_date,
+            'end_date': self.end_date,
+        }
+        resp = self.client.get(self.url, params)
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
         self.assertEqual(len(data), 1)
@@ -63,22 +80,37 @@ class TimeSlotAPITestCase(TestCase):
 
     def test_empty_or_missing_categories_param(self):
         self.client.force_authenticate(user=self.user)
-        resp1 = self.client.get(self.url)
+        params = {
+            'start_date': self.start_date,
+            'end_date': self.end_date,
+        }
+        resp1 = self.client.get(self.url, params)
         self.assertEqual(resp1.status_code, 200)
         self.assertEqual(resp1.json(), [])
-        resp2 = self.client.get(self.url, {'categories': ''})
+        params['categories'] = ''
+        resp2 = self.client.get(self.url, params)
         self.assertEqual(resp2.status_code, 200)
         self.assertEqual(resp2.json(), [])
 
     def test_invalid_category_ids_returns_400(self):
         self.client.force_authenticate(user=self.user)
-        resp = self.client.get(self.url, {'categories': 'foo,bar'})
+        params = {
+            'categories': 'foo,bar',
+            'start_date': self.start_date,
+            'end_date': self.end_date,
+        }
+        resp = self.client.get(self.url, params)
         self.assertEqual(resp.status_code, 400)
         self.assertIn('detail', resp.json())
 
     def test_is_booked_by_user_flag_separate(self):
         self.client.force_authenticate(user=self.user)
-        resp = self.client.get(self.url, {'categories': f'{self.cat1.id},{self.cat2.id}'})
+        params = {
+            'categories': f'{self.cat1.id},{self.cat2.id}',
+            'start_date': self.start_date,
+            'end_date': self.end_date,
+        }
+        resp = self.client.get(self.url, params)
         data = resp.json()
         by_id = {item['id']: item for item in data}
         self.assertIn('is_booked_by_user', by_id[self.slot1.id])

@@ -1,7 +1,11 @@
 import { fetchAvailableSlots, Slot } from "@/app/api/slots/route";
 import { useState, useEffect, useCallback } from "react";
 
-export function useAvailableSlots(categories: number[]) {
+export function useAvailableSlots(
+  categories: number[],
+  startDate: string,
+  endDate: string
+) {
   const [slots, setSlots] = useState<Slot[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -21,7 +25,7 @@ export function useAvailableSlots(categories: number[]) {
     setLoading(true);
     setError(null);
 
-    fetchAvailableSlots(categories, controller.signal)
+    fetchAvailableSlots(categories, startDate, endDate, controller.signal)
       .then((data) => setSlots(data))
       .catch((err) => {
         if (err.name !== "AbortError") {
