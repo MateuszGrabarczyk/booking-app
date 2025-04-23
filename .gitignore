@@ -66,11 +66,6 @@
 /frontend/yarn-error.log*
 /frontend/pnpm-debug.log*
 
-# lockfiles (uncomment if you don't want them committed)
-/frontend/package-lock.json
-/frontend/yarn.lock
-/frontend/pnpm-lock.yaml
-
 # ──────────────────────────────────────────────────────────────────────────────
 # Docker / Compose
 # ──────────────────────────────────────────────────────────────────────────────
